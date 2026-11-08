@@ -15,6 +15,7 @@ type Rule struct {
 
 type Options struct {
 	CodeMode string // "describe" (default) or "read" (unwrap every block verbatim)
+	TTSName  string // name of the voice tool referenced in prompt output
 }
 
 type Result struct {

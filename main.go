@@ -22,8 +22,10 @@ Flags:
 }
 
 func main() {
-	verbose := flag.Bool("v", false, "report which rules changed the text (stderr)")
+	verbose := flag.Bool("v", false, "report which rules changed the text / prompt groups detected (stderr)")
 	codeMode := flag.String("code", "describe", "code block handling: describe | read (read unwraps every block verbatim)")
+	direct := flag.Bool("text", false, "output the deterministically cleaned text instead of an LLM prompt")
+	tts := flag.String("tts", "the voice tool", "name of the TTS tool call referenced in prompt output")
 	list := flag.Bool("rules", false, "list pipeline rules and exit")
 	flag.Usage = usage
 	flag.Parse()
@@ -52,9 +54,18 @@ func main() {
 	}
 
 	text := strings.ReplaceAll(string(in), "\r\n", "\n")
-	res := Clean(text, Options{CodeMode: *codeMode})
-	if *verbose {
-		fmt.Fprintf(os.Stderr, "changes: %s\n", strings.Join(res.Changes, ", "))
+	opts := Options{CodeMode: *codeMode, TTSName: *tts}
+	if *direct {
+		res := Clean(text, opts)
+		if *verbose {
+			fmt.Fprintf(os.Stderr, "changes: %s\n", strings.Join(res.Changes, ", "))
+		}
+		os.Stdout.WriteString(res.Text)
+		return
 	}
-	os.Stdout.WriteString(res.Text)
+	prompt, groups := BuildPrompt(text, opts)
+	if *verbose {
+		fmt.Fprintf(os.Stderr, "detected: %s\n", strings.Join(groups, ", "))
+	}
+	os.Stdout.WriteString(prompt)
 }
