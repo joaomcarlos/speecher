@@ -584,10 +584,11 @@ func ruleMigrationFiles(text string) string {
 	if len(reps) == 0 {
 		return text
 	}
-	return splice(text, reps)
+	out := splice(text, reps)
+	return reDupMigration.ReplaceAllString(out, "$1")
 }
 
-// --- file paths ---
+var reDupMigration = regexp.MustCompile(`\b(?:a |the )?migration ` + "`?" + `(migration ending \w{4})` + "`?")
 
 var (
 	rePathChars = regexp.MustCompile(`^(?:~/)?[\p{L}\p{N}_./][\p{L}\p{N}_./-]*$`)
