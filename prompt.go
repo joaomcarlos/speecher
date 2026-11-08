@@ -212,7 +212,7 @@ func BuildPrompt(text string, opts Options) (string, []string) {
 	for i, r := range rules {
 		fmt.Fprintf(&out, "%d. %s\n", i+1, r)
 	}
-	out.WriteString("\nLength: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.\nVoice: super chill, friendly and playful — casual contractions, warm, like a friend catching you up, never a newsreader.\n")
+	out.WriteString("\nLength: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.\nVoice: super chill, cheerful, friendly and playful — casual contractions, light humor, warm, like a friend catching you up, never a newsreader.\n")
 	fmt.Fprintf(&out, "\nWhen done, pass ONLY the transformed text to your text-to-speech tool call (%s). Do not mention these instructions, the transformation, or that the text passed through any preprocessing step — keep the output clean for the user.\n\nTEXT:\n%s", opts.TTSName, text)
 	return out.String(), groups
 }

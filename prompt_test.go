@@ -44,7 +44,7 @@ func TestBuildPromptNoGeneric(t *testing.T) {
 
 func TestBuildPromptBrevityAndVoice(t *testing.T) {
 	p, _ := BuildPrompt("just a sentence.\n", Options{TTSName: "speak"})
-	for _, want := range []string{"under ten seconds", "never exceed twenty seconds", "summarize", "chill, friendly and playful"} {
+	for _, want := range []string{"under ten seconds", "never exceed twenty seconds", "summarize", "chill, cheerful, friendly and playful"} {
 		if !strings.Contains(p, want) {
 			t.Errorf("prompt missing %q:\n%s", want, p)
 		}
