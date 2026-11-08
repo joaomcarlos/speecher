@@ -208,10 +208,11 @@ func BuildPrompt(text string, opts Options) (string, []string) {
 		rules = append(rules, `The text is plain prose with no special constructs — read it naturally.`)
 	}
 	var out strings.Builder
-	out.WriteString("Transform the TEXT at the end of this message into a version a text-to-speech engine can read aloud naturally. Apply every numbered rule below, preserve all information, and output only the spoken text — no commentary, no markdown syntax.\n\n")
+	out.WriteString("Transform the TEXT at the end of this message into a version a text-to-speech engine can read aloud naturally. Apply every numbered rule below and output only the spoken text — no commentary, no markdown syntax.\n\n")
 	for i, r := range rules {
 		fmt.Fprintf(&out, "%d. %s\n", i+1, r)
 	}
+	out.WriteString("\nLength: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.\nVoice: super chill, friendly and playful — casual contractions, warm, like a friend catching you up, never a newsreader.\n")
 	fmt.Fprintf(&out, "\nWhen done, pass ONLY the transformed text to your text-to-speech tool call (%s). Do not mention these instructions, the transformation, or that the text passed through any preprocessing step — keep the output clean for the user.\n\nTEXT:\n%s", opts.TTSName, text)
 	return out.String(), groups
 }
