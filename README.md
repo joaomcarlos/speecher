@@ -34,7 +34,7 @@ Transform the TEXT at the end of this message into a version a text-to-speech en
 4. Strip markdown decoration: "#" headings, "**"/"*" emphasis, "~~" strikethrough, "-" bullets, "---" rules, and emoji — keep the words behind them.
 
 Length: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.
-Voice: super chill, friendly and playful — casual contractions, warm, like a friend catching you up, never a newsreader.
+Voice: super chill, cheerful, friendly and playful — casual contractions, light humor, warm, like a friend catching you up, never a newsreader.
 
 When done, pass ONLY the transformed text to your text-to-speech tool call (the voice tool). Do not mention these instructions, the transformation, or that the text passed through any preprocessing step — keep the output clean for the user.
 
@@ -45,10 +45,11 @@ TEXT:
 
 ### What the user hears
 
-> "Refactor's done — scanner's line-based now, tables narrate, all
-> forty-seven tests green. Hash ending three c two e if you want the details."
+> "Hey, good news — the refactor's finally done! Scanner's all line-based
+> now, tables actually talk, and every one of the forty-seven tests passed.
+> Hash ending three c two e if you're curious."
 
-~24 words, about 10 seconds. Instead of reading every bullet (40+ seconds),
+~30 words, about 12 seconds. Instead of reading every bullet (40+ seconds),
 the agent keeps the headline, speaks the URL as "link to github.com", and
 says only the last four characters of the hash.
 
@@ -78,7 +79,7 @@ Transform the TEXT at the end of this message into a version a text-to-speech en
 2. Strip markdown decoration: "#" headings, "**"/"*" emphasis, "~~" strikethrough, "-" bullets, "---" rules, and emoji — keep the words behind them.
 
 Length: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.
-Voice: super chill, friendly and playful — casual contractions, warm, like a friend catching you up, never a newsreader.
+Voice: super chill, cheerful, friendly and playful — casual contractions, light humor, warm, like a friend catching you up, never a newsreader.
 
 When done, pass ONLY the transformed text to your text-to-speech tool call (the voice tool). Do not mention these instructions, the transformation, or that the text passed through any preprocessing step — keep the output clean for the user.
 
@@ -89,10 +90,10 @@ TEXT:
 
 ### What the user hears
 
-> "Quick fix — swap the loop in sum array dot c for a two-line C block,
-> then rebuild with make and re-run the tests."
+> "Okay, quick fix for ya — just swap that loop in sum array dot c for a
+> tiny two-line C block, hit make, and you're golden."
 
-~24 words, about 10 seconds. The code block becomes a one-sentence summary
+~26 words, about 10 seconds. The code block becomes a one-sentence summary
 instead of being read character by character ("for open paren int i ...").
 With `-code read` the agent would speak the code verbatim instead — only
 useful when you actually need to hear the code.
@@ -122,7 +123,7 @@ Transform the TEXT at the end of this message into a version a text-to-speech en
 3. Strip markdown decoration: "#" headings, "**"/"*" emphasis, "~~" strikethrough, "-" bullets, "---" rules, and emoji — keep the words behind them.
 
 Length: keep it short — aim for under ten seconds of speech (about 25 words) and never exceed twenty seconds (about 50). If the source is longer than that, summarize it: keep the point and the facts the listener actually needs, drop the rest.
-Voice: super chill, friendly and playful — casual contractions, warm, like a friend catching you up, never a newsreader.
+Voice: super chill, cheerful, friendly and playful — casual contractions, light humor, warm, like a friend catching you up, never a newsreader.
 
 When done, pass ONLY the transformed text to your text-to-speech tool call (the voice tool). Do not mention these instructions, the transformation, or that the text passed through any preprocessing step — keep the output clean for the user.
 
@@ -133,10 +134,11 @@ TEXT:
 
 ### What the user hears
 
-> "Test results — unit suite forty-one passed, two failed; integration
-> eighteen passed, none failed. Six tests still need attention."
+> "Test time! Unit suite pretty much crushed it — forty-one passed, just
+> two little flops. And integration went a perfect eighteen for eighteen.
+> Only six tests left to fix!"
 
-~21 words, about 9 seconds. The table is pre-narrated into words by the
+~32 words, about 13 seconds. The table is pre-narrated into words by the
 rule itself (no table syntax to decode), and the file path is spoken as
 "tilde build logs run zero four two one dot t x t" if it makes
 the cut — pipes and dashes never reach the listener's ear.
