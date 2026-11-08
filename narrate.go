@@ -278,7 +278,11 @@ func describeCode(info, content string) string {
 	}
 	tag := infoTag(info)
 	if tag == "sh" || tag == "bash" || tag == "zsh" || tag == "shell" || tag == "console" || tag == "fish" {
-		return "Shell commands, " + strconv.Itoa(lines) + " " + word + "."
+		s := "Shell commands, " + strconv.Itoa(lines) + " " + word
+		if cmds := shellCommands(content); len(cmds) > 0 {
+			s += ", running " + joinWords(cmds)
+		}
+		return s + "."
 	}
 	name, known := langName(info)
 	var b strings.Builder
@@ -303,6 +307,79 @@ func describeCode(info, content string) string {
 	}
 	b.WriteString(".")
 	return b.String()
+}
+
+// reEnvAssign matches leading FOO=bar environment assignments on a command line.
+var reEnvAssign = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_]*=\S*`)
+
+// subcmdTools take a bare-word subcommand worth speaking: "go build", "git commit".
+var subcmdTools = map[string]bool{
+	"go": true, "git": true, "gh": true, "npm": true, "npx": true,
+	"cargo": true, "docker": true, "kubectl": true, "helm": true,
+	"systemctl": true, "brew": true, "apt": true, "apt-get": true,
+	"pip": true, "pip3": true, "yarn": true, "pnpm": true, "bun": true,
+	"deno": true,
+}
+
+var reBareWord = regexp.MustCompile(`^[A-Za-z][A-Za-z-]*$`)
+
+// shellCommands extracts the spoken command names from a shell block: it
+// splits on pipes/&&/;, strips env assignments and wrapper verbs (sudo, env,
+// time), takes each segment's executable basename, and appends the subcommand
+// for tools like go/git/npm. Returns up to 4 distinct commands in order.
+func shellCommands(content string) []string {
+	var cmds []string
+	seen := map[string]bool{}
+	add := func(seg string) {
+		fields := strings.Fields(strings.TrimSpace(seg))
+		for len(fields) > 0 {
+			f0 := fields[0]
+			// skip env assignments and wrapper verbs
+			if reEnvAssign.MatchString(f0) && !strings.Contains(f0, "/") {
+				fields = fields[1:]
+				continue
+			}
+			switch f0 {
+			case "sudo", "env", "time", "nice", "nohup", "watch", "xargs":
+				fields = fields[1:]
+				continue
+			}
+			break
+		}
+		if len(fields) == 0 {
+			return
+		}
+		cmd := fields[0]
+		if i := strings.LastIndex(cmd, "/"); i >= 0 {
+			cmd = cmd[i+1:]
+		}
+		cmd = strings.TrimSuffix(cmd, ":")
+		if cmd == "" || cmd == "echo" || cmd == "cd" {
+			return // wrappers only, or too trivial to narrate
+		}
+		name := cmd
+		if len(fields) > 1 && subcmdTools[cmd] && reBareWord.MatchString(fields[1]) {
+			name = cmd + " " + fields[1]
+		}
+		if !seen[name] {
+			seen[name] = true
+			cmds = append(cmds, name)
+		}
+	}
+	for _, ln := range strings.Split(content, "\n") {
+		t := strings.TrimSpace(ln)
+		if t == "" || strings.HasPrefix(t, "#") {
+			continue
+		}
+		// split command chains: a | b, a && b, a || b, a ; b
+		for _, seg := range strings.FieldsFunc(t, func(r rune) bool { return r == '|' || r == ';' || r == '&' }) {
+			add(seg)
+			if len(cmds) >= 4 {
+				return cmds
+			}
+		}
+	}
+	return cmds
 }
 
 var reTickRuns = regexp.MustCompile("`{3,}")

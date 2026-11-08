@@ -159,7 +159,11 @@ func TestCodeBlocks(t *testing.T) {
 		},
 		{
 			"```sh\nsystemctl restart nginx\njournalctl -u nginx -f\n```",
-			"Shell commands, 2 lines.",
+			"Shell commands, 2 lines, running systemctl restart and journalctl.",
+		},
+		{
+			"```sh\nCGO_ENABLED=0 go build -ldflags='-s -w' . && ./speechclean -v\nsudo systemctl reload nginx | grep ok\n```",
+			"Shell commands, 2 lines, running go build, speechclean, systemctl reload, and grep.",
 		},
 		{
 			"````vbnet\nHere are the proposed additions:\n\n```\n1. First.\n2. Second.\n```\n````",

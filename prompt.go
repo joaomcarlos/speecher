@@ -35,10 +35,10 @@ func BuildPrompt(text string, opts Options) (string, []string) {
 	case len(codeDesc) == 1 && proseBlocks == 0 && opts.CodeMode == "read":
 		rules = append(rules, `The text contains one code block (`+codeDesc[0]+`). Read it aloud verbatim, speaking punctuation naturally ("open paren", "dot", "equals").`)
 	case len(codeDesc) == 1 && proseBlocks == 0:
-		rules = append(rules, `The text contains one code block. Do not read the code — replace the whole block with: "`+codeDesc[0]+`."`)
+		rules = append(rules, `The text contains one code block. Do not read the code — replace the whole block with a one-sentence spoken summary that says what it does, along the lines of: "`+codeDesc[0]+`."`)
 	case len(codeDesc) > 0:
 		var b strings.Builder
-		fmt.Fprintf(&b, "The text contains %d code blocks. Do not read the code — replace each block, in order, with:", len(codeDesc))
+		fmt.Fprintf(&b, "The text contains %d code blocks. Do not read the code — replace each block, in order, with a one-sentence spoken summary saying what it does, along the lines of:", len(codeDesc))
 		for _, c := range codeDesc {
 			fmt.Fprintf(&b, ` "%s."`, c)
 		}
