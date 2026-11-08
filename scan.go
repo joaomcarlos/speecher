@@ -441,14 +441,22 @@ func runLen(text string, i int, c byte) int {
 	return j - i
 }
 
-// findCloseRun finds a run of exactly k backticks after i. Longer runs do not close.
+// findCloseRun finds a run of exactly k backticks after i. Longer runs do not
+// close. The search stops at a newline: rules rescan cleaned text, and a stray
+// backtick pairing across a line break creates giant false code spans.
 func findCloseRun(text string, i, end, k int) int {
 	for i < end {
-		j := strings.IndexByte(text[i:end], '`')
+		if text[i] == '\n' {
+			return -1
+		}
+		j := strings.IndexAny(text[i:end], "`\n")
 		if j < 0 {
 			return -1
 		}
 		i += j
+		if text[i] == '\n' {
+			return -1
+		}
 		n := runLen(text, i, '`')
 		if n == k {
 			return i
@@ -697,12 +705,33 @@ func scanInline(text string, start, end int) []Seg {
 	return segs
 }
 
-// Segments returns inline segments for a text block, excluding quote prefixes,
-// list markers, heading markers and link-definition lines.
-func (d *Doc) Segments(b Block) []Seg {
+// Items splits a text block into paragraph units: each list-marker or heading
+// line starts a new unit, continuation lines join it. Inline constructs such
+// as code spans cannot cross these boundaries.
+func (d *Doc) Items(b Block) []Span {
+	var items []Span
+	cur := -1
+	for i := b.FirstLine; i <= b.LastLine; i++ {
+		ln := d.Lines[i]
+		if ln.marker != nil || cur < 0 {
+			if cur >= 0 {
+				items = append(items, Span{d.Lines[cur].start, d.Lines[i-1].end})
+			}
+			cur = i
+		}
+	}
+	if cur >= 0 {
+		items = append(items, Span{d.Lines[cur].start, b.End})
+	}
+	return items
+}
+
+// hiddenIn returns spans inside rng that must not be treated as visible text:
+// quote prefixes, list/heading markers and link-definition lines.
+func (d *Doc) hiddenIn(rng Span) []Span {
 	var hidden []Span
 	for _, ln := range d.Lines {
-		if ln.end < b.Start || ln.start >= b.End {
+		if ln.end < rng.Start || ln.start >= rng.End {
 			continue
 		}
 		hidden = append(hidden, ln.prefixes...)
@@ -713,7 +742,12 @@ func (d *Doc) Segments(b Block) []Seg {
 			hidden = append(hidden, Span{ln.start, ln.end})
 		}
 	}
-	segs := scanInline(d.Text, b.Start, b.End)
+	return hidden
+}
+
+// itemSegments scans one item and removes hidden spans from text segments.
+func itemSegments(text string, item Span, hidden []Span) []Seg {
+	segs := scanInline(text, item.Start, item.End)
 	if len(hidden) == 0 {
 		return segs
 	}
@@ -738,6 +772,16 @@ func (d *Doc) Segments(b Block) []Seg {
 		}
 	}
 	return out
+}
+
+// Segments returns inline segments for a text block, excluding quote prefixes,
+// list markers, heading markers and link-definition lines.
+func (d *Doc) Segments(b Block) []Seg {
+	var segs []Seg
+	for _, item := range d.Items(b) {
+		segs = append(segs, itemSegments(d.Text, item, d.hiddenIn(item))...)
+	}
+	return segs
 }
 
 // --- replacement helpers ---

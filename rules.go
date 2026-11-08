@@ -130,6 +130,30 @@ func stripEmoji(s string) string {
 	}, s)
 }
 
+var spokenSymbols = []struct {
+	re  *regexp.Regexp
+	sub string
+}{
+	{regexp.MustCompile(` *→ *`), " to "}, {regexp.MustCompile(` *← *`), " from "},
+	{regexp.MustCompile(` *↔ *`), " and "}, {regexp.MustCompile(` *⇒ *`), " implies "},
+	{regexp.MustCompile(` *× *`), " times "}, {regexp.MustCompile(` *÷ *`), " divided by "},
+	{regexp.MustCompile(` *± *`), " plus or minus "}, {regexp.MustCompile(` *≈ *`), " about "},
+	{regexp.MustCompile(` *≠ *`), " not equal to "}, {regexp.MustCompile(` *≤ *`), " at most "},
+	{regexp.MustCompile(` *≥ *`), " at least "}, {regexp.MustCompile(` *° *`), " degrees "},
+	{regexp.MustCompile(` *• *`), " "},
+}
+
+var reDigitPercent = regexp.MustCompile(`(\d)%`)
+
+// speakSymbols maps common symbols to spoken words for the voice agent.
+func speakSymbols(s string) string {
+	for _, m := range spokenSymbols {
+		s = m.re.ReplaceAllString(s, m.sub)
+	}
+	s = reDigitPercent.ReplaceAllString(s, "${1} percent")
+	return s
+}
+
 func stripEmphasis(s string) string {
 	// runs of *, ~~, __ are emphasis — unless backslash-escaped
 	var b strings.Builder
@@ -185,6 +209,7 @@ func ruleFormatting(text string) string {
 			seg := s.sliceText(text)
 			out := seg
 			out = reDigitTimes.ReplaceAllString(out, "$1 times $2")
+			out = speakSymbols(out)
 			out = stripEmphasis(out)
 			out = stripEmoji(out)
 			// unescape punctuation, except a structural char at line start
@@ -396,38 +421,40 @@ func collectCandidates(text string, d *Doc, re *regexp.Regexp,
 		if b.Kind != blkText {
 			continue
 		}
-		var visible strings.Builder
-		var pending []struct {
-			start, end int
-			value      string
-			off        int
-		}
-		for _, s := range d.Segments(b) {
-			if s.Kind != segText && s.Kind != segCode {
-				continue
+		for _, item := range d.Items(b) {
+			var visible strings.Builder
+			var pending []struct {
+				start, end int
+				value      string
+				off        int
 			}
-			src := maskURLs(s.sliceText(text))
-			for _, m := range re.FindAllStringIndex(src, -1) {
-				if len(cands)+len(pending) >= 32 {
-					break
-				}
-				abs := s.CStart + m[0]
-				// boundary checks run against the real text, not the mask
-				if badBefore(text, abs) || badAfter(text, s.CStart+m[1]) {
+			for _, s := range itemSegments(d.Text, item, d.hiddenIn(item)) {
+				if s.Kind != segText && s.Kind != segCode {
 					continue
 				}
-				pending = append(pending, struct {
-					start, end int
-					value      string
-					off        int
-				}{abs, abs + m[1] - m[0], text[abs : abs+m[1]-m[0]], visible.Len() + m[0]})
+				src := maskURLs(s.sliceText(text))
+				for _, m := range re.FindAllStringIndex(src, -1) {
+					if len(cands)+len(pending) >= 32 {
+						break
+					}
+					abs := s.CStart + m[0]
+					// boundary checks run against the real text, not the mask
+					if badBefore(text, abs) || badAfter(text, s.CStart+m[1]) {
+						continue
+					}
+					pending = append(pending, struct {
+						start, end int
+						value      string
+						off        int
+					}{abs, abs + m[1] - m[0], text[abs : abs+m[1]-m[0]], visible.Len() + m[0]})
+				}
+				visible.WriteString(src)
+				visible.WriteString(" ")
 			}
-			visible.WriteString(src)
-			visible.WriteString(" ")
-		}
-		vis := visible.String()
-		for _, p := range pending {
-			cands = append(cands, candidate{p.start, p.end, p.value, p.off, vis})
+			vis := visible.String()
+			for _, p := range pending {
+				cands = append(cands, candidate{p.start, p.end, p.value, p.off, vis})
+			}
 		}
 	}
 	return cands

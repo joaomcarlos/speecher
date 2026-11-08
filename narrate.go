@@ -77,7 +77,8 @@ var (
 			`cargo\s|git\s|gh\s|cd\s|ls\s|ll\s|cat\s|grep\s|rg\s|find\s|curl\s|wget\s|chmod\s|` +
 			`chown\s|mkdir\s|mv\s|cp\s|rm\s|touch\s|docker\s|kubectl\s|helm\s|systemctl\s|` +
 			`make\s|cmake\s|tar\s|zip\s|unzip\s|ssh\s|scp\s|rsync\s|ps\s|kill\s|top\s|htop\s|` +
-			`head\s|tail\s|less\s|man\s|which\s|whereis\s|export\s|source\s|alias\s|set\s)`)
+			`head\s|tail\s|less\s|man\s|which\s|whereis\s|export\s|source\s|alias\s|set\s|` +
+			`\./\S|~/\S)`)
 	reAssign  = regexp.MustCompile(`^[\p{L}\p{N}_.\[\]'"]+\s*=([^=<>!]|$)`)
 	reCallSig = regexp.MustCompile(`^\s*[A-Za-z_][\w.]*\s*\(.*\)\s*;?\s*$`) // call-shaped line
 	reDataKV  = regexp.MustCompile(`^\s*"?[\p{L}\p{N}_-]+"?\s*[:=]\s*\S`)   // json/yaml key: value
